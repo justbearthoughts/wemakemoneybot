@@ -1,0 +1,19 @@
+[Unit]
+Description=WeMakeMoney Bot service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RuntimeMaxSec=3600
+User=wemakemoneybot
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/home/wemakemoneybot/
+ExecStart=/usr/bin/python /home/wemakemoneybot/wemakemoneybot.py
+StandardOutput=syslog
+StandardErroru=syslog
+SyslogIdentifier=wemakemoneybot
+
+[Install]
+WantedBy=multi-user.target

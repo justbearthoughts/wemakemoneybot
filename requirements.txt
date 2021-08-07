@@ -1,0 +1,8 @@
+pytesseract
+pillow
+asyncpraw
+yfinance
+requests
+selenium
+nltk
+opencv-python
