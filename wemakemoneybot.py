@@ -47,9 +47,9 @@ async def stockInfo(comment, *args):
     arg = args[0][0]
     try:
         stock = yf.Ticker(arg)
-        comment.reply(f'```\n{str(arg).upper()}:\nAverage Vol.: {stock.info["averageDailyVolume10Day"]}\nVolume: {stock.info["volume"]}\nLast Close: {stock.info["previousClose"]}\nLast open: {stock.info["regularMarketOpen"]}\nMarket cap: {stock.info["marketCap"]}\nShares short: {stock.info["sharesShort"] if stock.info["sharesShort"] is not None else "N/A"}\n% Float short: {round(float(stock.info["shortPercentOfFloat"])*100, 2) if stock.info["shortPercentOfFloat"] is not None else "N/A"}%\nYTD Change: {round(float(stock.info["52WeekChange"])*100, 2)}%\n```')
+        await comment.reply(f'```\n{str(arg).upper()}:\nAverage Vol.: {stock.info["averageDailyVolume10Day"]}\nVolume: {stock.info["volume"]}\nLast Close: {stock.info["previousClose"]}\nLast open: {stock.info["regularMarketOpen"]}\nMarket cap: {stock.info["marketCap"]}\nShares short: {stock.info["sharesShort"] if stock.info["sharesShort"] is not None else "N/A"}\n% Float short: {round(float(stock.info["shortPercentOfFloat"])*100, 2) if stock.info["shortPercentOfFloat"] is not None else "N/A"}%\nYTD Change: {round(float(stock.info["52WeekChange"])*100, 2)}%\n```')
     except ValueError:
-        comment.reply(f'Couldn\'t get info on {str(arg).upper()}')
+        await comment.reply(f'Couldn\'t get info on {str(arg).upper()}')
 
 
 async def stockPrice(comment, *args):
@@ -63,22 +63,22 @@ async def stockPrice(comment, *args):
             try:
                 if 'marketState' in data.keys():
                     if data['marketState'] == 'PRE':
-                        comment.reply(f'Latest PM price of {str(arg).upper()}: {data["preMarketPrice"]}, {round(float(data["preMarketChangePercent"]), 3)}%')
+                        await comment.reply(f'Latest PM price of {str(arg).upper()}: {data["preMarketPrice"]}, {round(float(data["preMarketChangePercent"]), 3)}%')
                     elif data['marketState'] == 'REGULAR':
-                        comment.reply(f'Latest price of {str(arg).upper()}: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
+                        await comment.reply(f'Latest price of {str(arg).upper()}: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
                     else:
-                        comment.reply(f'Latest price of {str(arg).upper()}: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
+                        await comment.reply(f'Latest price of {str(arg).upper()}: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
                 else:
                     try:
-                        comment.reply(f'{str(arg).upper()} last traded: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')    
+                        await comment.reply(f'{str(arg).upper()} last traded: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')    
                     except KeyError:
-                        comment.reply(f'Error occurred while getting price of {str(arg).upper()}\n```{traceback.format_exc()}```\n<@510951917128646657> fix your shitty code.')
+                        await comment.reply(f'Error occurred while getting price of {str(arg).upper()}\n```{traceback.format_exc()}```\n<@510951917128646657> fix your shitty code.')
             except IndexError:
-                comment.reply(f'Error occurred while getting price of {str(arg).upper()}\n```{traceback.format_exc()}```\n<@510951917128646657> fix your shitty code.')
+                await comment.reply(f'Error occurred while getting price of {str(arg).upper()}\n```{traceback.format_exc()}```\n<@510951917128646657> fix your shitty code.')
         except KeyError:
-            comment.reply(f'{str(arg).upper()} last traded: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
+            await comment.reply(f'{str(arg).upper()} last traded: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
     except (TypeError, KeyError, IndexError) as err:
-        comment.reply(f'Couldn\'t get price of {str(arg).upper()}')
+        await comment.reply(f'Couldn\'t get price of {str(arg).upper()}')
 
 
 async def options(comment, *args):
@@ -95,7 +95,7 @@ async def options(comment, *args):
             response = stock.option_chain(arg[2])[1].loc[:, ~stock.option_chain(arg[2])[1].columns.isin(["contractSymbol", "lastTradeDate", "contractSize", "currency", "change", "percentChange"])].loc[stock.option_chain(arg[2])[1]["inTheMoney"] == False].tail(5).to_markdown(index=False)
     except IndexError:
         response = f'No Options Chain for {str(arg).upper()}\n```'
-    comment.reply(response)
+    await comment.reply(response)
 
 
 async def getRSI(comment, *args):
@@ -104,7 +104,7 @@ async def getRSI(comment, *args):
     if args[1] not in periods:
         comment.reply(f'Please choose a proper period format. Proper format is: {periods}')
         return
-    comment.reply(f'{rsi.run(args[0], args[1])}')
+    await comment.reply(f'{rsi.run(args[0], args[1])}')
 
 
 async def botHelp(comment, *args):
@@ -117,9 +117,9 @@ async def botHelp(comment, *args):
         'botHelp': 'Show this help'
     }
     try:
-        comment.reply(f'```\n{helpMenu[arg]}\n```')
+        await comment.reply(f'```\n{helpMenu[arg]}\n```')
     except:
-        comment.reply(f'Couldn\'t fetch help menu for: {arg}')
+        await comment.reply(f'Couldn\'t fetch help menu for: {arg}')
 
 commands = {
     'stockPrice': stockPrice,
@@ -241,10 +241,6 @@ async def checkTimer(submission):
             return None
 
         try:
-            last_traded = data["regularMarketPrice"] if "regularMarketPrice" in data.keys() else "N/A"
-        except KeyError:
-            last_traded = "N/A"
-        try:
             volume_last = stock.info["volume"] if isinstance(stock, yf.Ticker) else stock
         except (KeyError, HTTPError):
             volume_last = "N/A"
@@ -264,23 +260,23 @@ async def checkTimer(submission):
             avgTot = "N/A"
             avg10 = "N/A"
         
-        response += f'\nLast traded price:' + f'{last_traded : >15}'
-        response += f'\nVolume last day:' + f'{volume_last : >17}'
-        response += f'\nVolume 10d avg.:' + f'{vol_10_avg : >17}'
-        response += f'\nAverage volume on day:' + f'{avgTot : >11}'
-        response += f'\nAverage volume last 10:' + f'{avg10 : >10}'
-        response += '```'
 
         try:
             if likely_ticker != '':
                 #if stock.info["volume"] > stock.info["averageVolume10days"] and avg10 > avgTot:
                 sub = await reddit.submission(submission)
-                _ = sub.crosspost(subreddit='WeMakeMoney', send_replies=False)
+                _ = await sub.crosspost(subreddit='WeMakeMoney', send_replies=False)
             else:
                 return None           
         except AttributeError:
             pass
 
+async def main():
+    loop = asyncio.get_event_loop()
+    funcs = [streamer(), run()]
+    futures = [loop.create_task(func) for func in funcs]
+    for result in await asyncio.gather(*futures):
+        pass
 
 async def streamer():
     sub = await reddit.subreddit('wallstreetbets')
@@ -295,13 +291,9 @@ async def streamer():
 
 
 if __name__ == '__main__':
-    #funcs = [streamer, run]
-    #with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-    #    future1 = executor.submit(streamer)
-    #    future2 = executor.submit(run)
     while True:
         try:            
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(streamer())
+            loop.run_until_complete(main())
         except (prawcore.exceptions.ServerError, prawcore.exceptions.ResponseException):
             continue
