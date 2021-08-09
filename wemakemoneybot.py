@@ -66,6 +66,8 @@ async def stockPrice(comment, *args):
                         await comment.reply(f'Latest PM price of {str(arg).upper()}: {data["preMarketPrice"]}, {round(float(data["preMarketChangePercent"]), 3)}%')
                     elif data['marketState'] == 'REGULAR':
                         await comment.reply(f'Latest price of {str(arg).upper()}: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
+                    elif data['marketState'] == 'POST':
+                        await comment.reply(f'Latest AH price of {str(arg).upper()}: {data["postMarketPrice"]}, {round(float(data["postMarketChange"]), 3)}%')
                     else:
                         await comment.reply(f'Latest price of {str(arg).upper()}: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
                 else:
