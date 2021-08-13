@@ -1,8 +1,11 @@
-pytesseract
-pillow
 asyncpraw
-yfinance
-requests
-selenium
+mplfinance
 nltk
 opencv-python
+pip-chill
+praw
+pytesseract
+python-dotenv
+selenium
+tabulate
+yfinance

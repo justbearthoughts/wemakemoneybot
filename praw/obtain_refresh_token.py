@@ -29,9 +29,13 @@ import asyncio
 import random
 import socket
 import sys
+import os
 
 import asyncpraw
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 async def main():
     """Provide the program's entry point when directly executed."""
@@ -43,6 +47,10 @@ async def main():
     reddit = asyncpraw.Reddit(
         redirect_uri="http://localhost:8080",
         user_agent="obtain_refresh_token/v0 by u/bboe",
+        client_id=os.getenv('praw_client_id'),
+        client_secret=os.getenv('praw_client_secret'),
+        username=os.getenv('bot_username'),
+        password=os.getenv('bot_password')
     )
     state = str(random.randint(0, 65000))
     url = reddit.auth.url(scopes, state, "permanent")

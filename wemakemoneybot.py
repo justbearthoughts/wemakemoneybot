@@ -21,9 +21,14 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
 import re
 import concurrent.futures
+import os
+from dotenv import load_dotenv
 
 import rsi
 import config
+
+load_dotenv()
+target_subreddit = os.getenv('subreddit')
 
 tickerRE = re.compile(r"(?:\s)?([A-Z]{2,5})(?![a-z’'\.]+)(?:\s)?")
 
@@ -72,7 +77,7 @@ async def stockPrice(comment, *args):
                         await comment.reply(f'Latest price of {str(arg).upper()}: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
                 else:
                     try:
-                        await comment.reply(f'{str(arg).upper()} last traded: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')    
+                        await comment.reply(f'{str(arg).upper()} last traded: {data["regularMarketPrice"]}, {round(float(data["regularMarketChangePercent"]), 3)}%')
                     except KeyError:
                         await comment.reply(f'Error occurred while getting price of {str(arg).upper()}\n```{traceback.format_exc()}```\n<@510951917128646657> fix your shitty code.')
             except IndexError:
@@ -133,13 +138,13 @@ commands = {
 
 
 async def run():
-    sub = await reddit.subreddit('WeMakeMoney')
+    sub = await reddit.subreddit(target_subreddit)
     async for comment in sub.stream.comments(skip_existing=True):
         c = str(comment.body)
         if '$' in c[0]:
             c = c.replace('\n', ' ')
             print(f'{datetime.now()} - Command: {c[1:].split(" ")[0]} - Params: {c[1:].split(" ")[1:]} - Comment: {comment}')
-            if c[1:].split(' ')[0] in commands.keys():                
+            if c[1:].split(' ')[0] in commands.keys():
                 try:
                     await commands[c[1:].split(' ')[0]](comment, c[1:].split(' ')[1:])
                 except:
@@ -186,7 +191,7 @@ async def checkTimer(submission):
     await asyncio.sleep(300)
     retest = await reddit.submission(submission)
     if retest.selftext == '[removed]':
-        print(f'{datetime.now()} - Stop timer for {submission.title} - Discarded.')         
+        print(f'{datetime.now()} - Stop timer for {submission.title} - Discarded.')
     else:
         print(f'{datetime.now()} - Stop timer for {submission.title} - Posting.')
         chain = 'N/A'
@@ -220,7 +225,7 @@ async def checkTimer(submission):
             try:
                 chain = stock.options[0:3]
                 response = f'\n```Snippet of Options Chain for {str(likely_ticker).upper()}\n'
-                
+
                 for item in chain:
                     response += f'EXP: {item}\n{stock.option_chain(item)[0].loc[:, ~stock.option_chain(item)[0].columns.isin(["contractSymbol", "lastTradeDate", "contractSize", "currency", "change", "percentChange"])].loc[stock.option_chain(item)[0]["inTheMoney"] == False].head(3)}\n'
                     chain_track += f'{stock.option_chain(item)[0].loc[:, ~stock.option_chain(item)[0].columns.isin(["contractSymbol", "lastTradeDate", "contractSize", "currency", "change", "percentChange"])].loc[stock.option_chain(item)[0]["inTheMoney"] == False].head(3)}\n'
@@ -261,15 +266,15 @@ async def checkTimer(submission):
         except (KeyError, IndexError):
             avgTot = "N/A"
             avg10 = "N/A"
-        
+
 
         try:
             if likely_ticker != '':
                 #if stock.info["volume"] > stock.info["averageVolume10days"] and avg10 > avgTot:
                 sub = await reddit.submission(submission)
-                _ = await sub.crosspost(subreddit='WeMakeMoney', send_replies=False)
+                _ = await sub.crosspost(subreddit=target_subreddit, send_replies=False)
             else:
-                return None           
+                return None
         except AttributeError:
             pass
 
@@ -284,7 +289,7 @@ async def streamer():
     sub = await reddit.subreddit('wallstreetbets')
     async for submission in sub.stream.submissions(skip_existing=True):
         try:
-            if submission.link_flair_text == 'DD':                                
+            if submission.link_flair_text == 'DD':
                 print(f'{datetime.now()} - Start timer for {submission.title}')
                 asyncio.create_task(checkTimer(submission))
 
@@ -294,7 +299,7 @@ async def streamer():
 
 if __name__ == '__main__':
     while True:
-        try:            
+        try:
             loop = asyncio.get_event_loop()
             loop.run_until_complete(main())
         except (prawcore.exceptions.ServerError, prawcore.exceptions.ResponseException, asyncio.exceptions.TimeoutError):
